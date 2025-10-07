@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -15,6 +15,8 @@ import PaymentPage from './pages/PaymentPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminPackages from './pages/admin/AdminPackages';
 import CreatePackage from './pages/admin/CreatePackage';
+import EditPackage from './pages/admin/EditPackage';
+import ManagePackageDates from './pages/admin/ManagePackageDates';
 import AdminBookings from './pages/admin/AdminBookings';
 import AdminUsers from './pages/admin/AdminUsers';
 
@@ -31,6 +33,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth/signup" element={<SignUp />} />
             <Route path="/auth/login" element={<Login />} />
+            <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
             <Route path="/admin/login" element={<AdminLogin />} />
 
             <Route
@@ -79,6 +82,22 @@ function App() {
               element={
                 <ProtectedRoute adminOnly>
                   <CreatePackage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/packages/:id/edit"
+              element={
+                <ProtectedRoute adminOnly>
+                  <EditPackage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/packages/:id/dates"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ManagePackageDates />
                 </ProtectedRoute>
               }
             />

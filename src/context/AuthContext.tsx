@@ -8,8 +8,6 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
-  adminLoggedIn: boolean;
-  setAdminLoggedIn: (value: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,7 +16,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [adminLoggedIn, setAdminLoggedIn] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -40,11 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    const storedAdmin = localStorage.getItem('adminLoggedIn');
-    if (storedAdmin === 'true') {
-      setAdminLoggedIn(true);
-    }
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -65,18 +57,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const isAdmin = profile?.role === 'admin' || adminLoggedIn;
+  const isAdmin = profile?.role === 'admin';
 
   const value = {
     user,
     profile,
     loading,
     isAdmin,
-    adminLoggedIn,
-    setAdminLoggedIn: (value: boolean) => {
-      setAdminLoggedIn(value);
-      localStorage.setItem('adminLoggedIn', value.toString());
-    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

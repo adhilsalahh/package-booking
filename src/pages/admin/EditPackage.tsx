@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { supabase, Package } from '../../lib/supabase';
 
-export default function CreatePackage() {
+export default function EditPackage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { id } = useParams<{ id: string }>();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -14,6 +13,37 @@ export default function CreatePackage() {
     images: '',
   });
   const [loading, setLoading] = useState(false);
+  const [loadingPackage, setLoadingPackage] = useState(true);
+
+  useEffect(() => {
+    loadPackage();
+  }, [id]);
+
+  async function loadPackage() {
+    try {
+      const { data, error } = await supabase
+        .from('packages')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setFormData({
+          title: data.title,
+          description: data.description || '',
+          price: data.price.toString(),
+          duration: data.duration || '',
+          images: data.images?.join(', ') || '',
+        });
+      }
+    } catch (error) {
+      console.error('Error loading package:', error);
+      alert('Failed to load package');
+    } finally {
+      setLoadingPackage(false);
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,33 +55,40 @@ export default function CreatePackage() {
         .map((url) => url.trim())
         .filter((url) => url.length > 0);
 
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) throw new Error('Not authenticated');
-
-      const { error } = await supabase.from('packages').insert({
-        title: formData.title,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        duration: formData.duration,
-        images: imagesArray,
-        created_by: currentUser.id,
-      });
+      const { error } = await supabase
+        .from('packages')
+        .update({
+          title: formData.title,
+          description: formData.description,
+          price: parseFloat(formData.price),
+          duration: formData.duration,
+          images: imagesArray,
+        })
+        .eq('id', id);
 
       if (error) throw error;
-      alert('Package created successfully!');
+      alert('Package updated successfully!');
       navigate('/admin/packages');
     } catch (error: any) {
-      console.error('Error creating package:', error);
-      alert(error.message || 'Failed to create package');
+      console.error('Error updating package:', error);
+      alert(error.message || 'Failed to update package');
     } finally {
       setLoading(false);
     }
   };
 
+  if (loadingPackage) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-600 text-lg">Loading package...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">Create New Package</h1>
+        <h1 className="text-4xl font-bold text-gray-800 mb-8">Edit Package</h1>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-8 space-y-6">
           <div>
@@ -128,7 +165,7 @@ export default function CreatePackage() {
               disabled={loading}
               className="flex-1 bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              {loading ? 'Creating...' : 'Create Package'}
+              {loading ? 'Updating...' : 'Update Package'}
             </button>
             <button
               type="button"

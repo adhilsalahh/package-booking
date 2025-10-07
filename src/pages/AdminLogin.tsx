@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isAdmin } from '../lib/auth';
+import { adminSignIn } from '../lib/auth';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const { setAdminLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,12 +16,8 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      if (isAdmin(email, password)) {
-        setAdminLoggedIn(true);
-        navigate('/admin/dashboard');
-      } else {
-        setError('Invalid admin credentials');
-      }
+      await adminSignIn(email, password);
+      navigate('/admin/dashboard');
     } catch (err: any) {
       setError(err.message || 'Failed to sign in');
     } finally {

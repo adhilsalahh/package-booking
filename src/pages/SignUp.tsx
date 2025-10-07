@@ -19,9 +19,12 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      await signUp(formData);
+      const result = await signUp(formData);
+      console.log('Signup result:', result);
+      alert('Account created successfully! You can now login.');
       navigate('/auth/login');
     } catch (err: any) {
+      console.error('Signup error:', err);
       setError(err.message || 'Failed to sign up');
     } finally {
       setLoading(false);

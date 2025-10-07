@@ -11,6 +11,12 @@ export async function signUp({ email, password, username, phone }: SignUpData) {
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        username,
+        phone,
+      },
+    },
   });
 
   if (authError) throw authError;
@@ -25,7 +31,10 @@ export async function signUp({ email, password, username, phone }: SignUpData) {
       role: 'user',
     });
 
-  if (profileError) throw profileError;
+  if (profileError) {
+    console.error('Profile creation error:', profileError);
+    throw new Error(`Failed to create profile: ${profileError.message}`);
+  }
 
   return authData;
 }
@@ -64,9 +73,25 @@ export async function getCurrentProfile() {
   return data;
 }
 
-export function isAdmin(adminEmail: string, adminPassword: string): boolean {
-  const envAdminEmail = import.meta.env.VITE_ADMIN_EMAIL || 'admin@tripadikkam';
-  const envAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin1234';
+export async function adminSignIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  return adminEmail === envAdminEmail && adminPassword === envAdminPassword;
+  if (error) throw error;
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', data.user.id)
+    .maybeSingle();
+
+  if (profileError) throw profileError;
+  if (!profile || profile.role !== 'admin') {
+    await supabase.auth.signOut();
+    throw new Error('You do not have admin privileges');
+  }
+
+  return { user: data.user, profile };
 }
