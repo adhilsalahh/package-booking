@@ -1,160 +1,138 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { supabase, Package, PackageDate } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
-import { Calendar, Clock, IndianRupee, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { Package } from '../lib/supabase';
+import { ArrowLeft, Clock, IndianRupee, CheckCircle2, Calendar } from 'lucide-react';
+import BookingForm from '../components/BookingForm';
 
-export default function PackageDetails() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [pkg, setPkg] = useState<Package | null>(null);
-  const [dates, setDates] = useState<PackageDate[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState('');
+interface PackageDetailsProps {
+  package: Package;
+  onBack: () => void;
+}
 
-  useEffect(() => {
-    if (id) {
-      loadPackage();
-      loadDates();
-    }
-  }, [id]);
+const PackageDetails: React.FC<PackageDetailsProps> = ({ package: pkg, onBack }) => {
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  async function loadPackage() {
-    try {
-      const { data, error } = await supabase
-        .from('packages')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-
-      if (error) throw error;
-      setPkg(data);
-    } catch (error) {
-      console.error('Error loading package:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function loadDates() {
-    try {
-      const { data, error } = await supabase
-        .from('package_dates')
-        .select('*')
-        .eq('package_id', id)
-        .gte('available_date', new Date().toISOString().split('T')[0])
-        .order('available_date', { ascending: true });
-
-      if (error) throw error;
-      setDates(data || []);
-    } catch (error) {
-      console.error('Error loading dates:', error);
-    }
-  }
-
-  const handleBooking = () => {
-    if (!user) {
-      navigate('/auth/login');
-      return;
-    }
-    if (!selectedDate) {
-      alert('Please select a travel date');
-      return;
-    }
-    navigate(`/booking/${id}?date=${selectedDate}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-gray-600 text-lg">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!pkg) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 text-lg mb-4">Package not found</p>
-          <Link to="/packages" className="text-emerald-600 hover:text-emerald-700">
-            Back to Packages
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const imageUrl = pkg.images && pkg.images.length > 0
-    ? pkg.images[0]
-    : 'https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=1200';
+  const images = pkg.images.length > 0
+    ? pkg.images
+    : ['https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=1920'];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-5xl mx-auto px-4">
-        <img
-          src={imageUrl}
-          alt={pkg.title}
-          className="w-full h-96 object-cover rounded-lg shadow-lg mb-8"
-        />
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        <button
+          onClick={onBack}
+          className="flex items-center text-emerald-600 hover:text-emerald-700 font-semibold mb-6 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Back to Packages
+        </button>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">{pkg.title}</h1>
-
-          <div className="flex items-center gap-6 mb-6 text-gray-700">
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-emerald-600" />
-              <span>{pkg.duration || 'Multiple days'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <IndianRupee className="w-5 h-5 text-emerald-600" />
-              <span className="text-2xl font-bold text-emerald-600">{pkg.price}</span>
-            </div>
-          </div>
-
-          <p className="text-gray-700 text-lg mb-8 leading-relaxed">
-            {pkg.description || 'Experience the beauty of Kerala with this amazing package. Enjoy scenic landscapes, cultural experiences, and unforgettable memories.'}
-          </p>
-
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Available Dates</h2>
-            {dates.length > 0 ? (
-              <div className="grid md:grid-cols-3 gap-4">
-                {dates.map((date) => (
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="relative h-96 md:h-[500px] overflow-hidden">
+            <img
+              src={images[currentImageIndex]}
+              alt={pkg.title}
+              className="w-full h-full object-cover"
+            />
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
+                {images.map((_, index) => (
                   <button
-                    key={date.id}
-                    onClick={() => setSelectedDate(date.available_date)}
-                    className={`p-4 border-2 rounded-lg transition ${
-                      selectedDate === date.available_date
-                        ? 'border-emerald-600 bg-emerald-50'
-                        : 'border-gray-300 hover:border-emerald-400'
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`w-3 h-3 rounded-full transition-all ${
+                      index === currentImageIndex
+                        ? 'bg-white w-8'
+                        : 'bg-white bg-opacity-50 hover:bg-opacity-75'
                     }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calendar className="w-5 h-5 text-emerald-600" />
-                      <span className="font-semibold">
-                        {new Date(date.available_date).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">{date.seats} seats available</p>
-                  </button>
+                  />
                 ))}
               </div>
-            ) : (
-              <p className="text-gray-600">No upcoming dates available for this package.</p>
             )}
           </div>
 
-          <button
-            onClick={handleBooking}
-            disabled={dates.length === 0}
-            className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg"
-          >
-            {user ? 'Book Now' : 'Sign In to Book'}
-          </button>
+          <div className="p-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+              <h1 className="text-4xl font-bold text-gray-800 mb-4 md:mb-0">{pkg.title}</h1>
+              <div className="flex items-center gap-2 text-3xl font-bold text-emerald-600">
+                <IndianRupee className="h-8 w-8" />
+                <span>{pkg.price}</span>
+                <span className="text-lg font-normal text-gray-600">/ person</span>
+              </div>
+            </div>
+
+            <div className="flex items-center text-gray-700 mb-6">
+              <Clock className="h-6 w-6 mr-2 text-emerald-600" />
+              <span className="text-lg font-medium">{pkg.duration}</span>
+            </div>
+
+            <p className="text-gray-700 text-lg mb-8 leading-relaxed">{pkg.description}</p>
+
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <CheckCircle2 className="h-6 w-6 mr-2 text-emerald-600" />
+                Package Inclusions
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {pkg.inclusions.map((inclusion, index) => (
+                  <div key={index} className="flex items-start bg-emerald-50 p-3 rounded-lg">
+                    <CheckCircle2 className="h-5 w-5 mr-2 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">{inclusion}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {pkg.itinerary && pkg.itinerary.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                  <Calendar className="h-6 w-6 mr-2 text-emerald-600" />
+                  Detailed Itinerary
+                </h2>
+                <div className="space-y-6">
+                  {pkg.itinerary.map((day: any, index: number) => (
+                    <div key={index} className="border-l-4 border-emerald-600 pl-6 py-2">
+                      <h3 className="text-xl font-bold text-gray-800 mb-3">{day.title}</h3>
+                      <ul className="space-y-2">
+                        {day.activities.map((activity: string, actIndex: number) => (
+                          <li key={actIndex} className="text-gray-700 flex items-start">
+                            <span className="text-emerald-600 mr-2">✓</span>
+                            <span>{activity}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-6 text-white">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div className="mb-4 md:mb-0">
+                  <h3 className="text-2xl font-bold mb-2">Ready to Book?</h3>
+                  <p className="text-emerald-100">Secure your spot for this amazing adventure!</p>
+                </div>
+                <button
+                  onClick={() => setShowBookingForm(true)}
+                  className="bg-white text-emerald-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-lg transition-all transform hover:scale-105 shadow-lg text-lg"
+                >
+                  Book Now
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {showBookingForm && (
+        <BookingForm
+          package={pkg}
+          onClose={() => setShowBookingForm(false)}
+        />
+      )}
     </div>
   );
-}
+};
+
+export default PackageDetails;
