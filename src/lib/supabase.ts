@@ -9,48 +9,51 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export interface Package {
+export type Profile = {
+  id: string;
+  username: string;
+  phone: string;
+  role: 'user' | 'admin';
+  created_at: string;
+};
+
+export type Package = {
   id: string;
   title: string;
   description: string;
   price: number;
   duration: string;
   images: string[];
-  inclusions: string[];
-  itinerary: ItineraryDay[];
+  created_by: string;
   created_at: string;
-  updated_at: string;
-}
+};
 
-export interface ItineraryDay {
-  day: number;
-  title: string;
-  activities: string[];
-}
+export type PackageDate = {
+  id: string;
+  package_id: string;
+  available_date: string;
+  seats: number;
+};
 
-export interface Member {
+export type Member = {
   name: string;
   age: number;
-}
-
-export interface Booking {
-  id: string;
-  package_id: string;
-  name: string;
   phone: string;
-  members: Member[];
-  booking_date: string;
-  payment_screenshot?: string;
-  status: 'pending' | 'confirmed';
-  created_at: string;
-  updated_at: string;
-}
+};
 
-export interface AvailableDate {
+export type Booking = {
   id: string;
   package_id: string;
-  date: string;
-  max_bookings: number;
-  current_bookings: number;
+  user_id: string;
+  booking_date: string;
+  travel_date: string;
+  members: Member[];
+  total_amount: number;
+  advance_paid: boolean;
+  advance_amount: number;
+  advance_utr: string | null;
+  advance_receipt_url: string | null;
+  full_payment_done: boolean;
+  status: 'pending' | 'confirmed' | 'cancelled';
   created_at: string;
-}
+};

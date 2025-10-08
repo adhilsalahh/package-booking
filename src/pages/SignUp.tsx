@@ -1,115 +1,127 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { signUp } from '../lib/auth';
+import { UserPlus } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-export default function SignUp() {
-  const navigate = useNavigate();
+interface SignupProps {
+  onNavigate: (page: string) => void;
+  showToast: (message: string, type: 'success' | 'error') => void;
+}
+
+export function Signup({ onNavigate, showToast }: SignupProps) {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     phone: '',
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { signUp } = useAuth();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
-      const result = await signUp(formData);
-      console.log('Signup result:', result);
-      alert('Account created successfully! You can now login.');
-      navigate('/auth/login');
-    } catch (err: any) {
-      console.error('Signup error:', err);
-      setError(err.message || 'Failed to sign up');
+      await signUp(formData.email, formData.password, formData.username, formData.phone);
+      showToast('Account created successfully!', 'success');
+      onNavigate('login');
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      showToast(error.message || 'Failed to create account', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Create Account</h2>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-            {error}
+    <div className="min-h-screen bg-gray-50 pt-24 pb-12 flex items-center justify-center">
+      <div className="max-w-md w-full mx-4">
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="flex items-center justify-center mb-8">
+            <div className="bg-blue-100 p-3 rounded-full">
+              <UserPlus className="h-8 w-8 text-blue-600" />
+            </div>
           </div>
-        )}
+          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">Create Account</h1>
+          <p className="text-gray-600 text-center mb-8">Sign up to start booking</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                  minLength={6}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Creating Account...' : 'Sign Up'}
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Already have an account?{' '}
+              <button
+                onClick={() => onNavigate('login')}
+                className="text-blue-600 hover:underline font-semibold"
+              >
+                Login
+              </button>
+            </p>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              required
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            {loading ? 'Creating Account...' : 'Sign Up'}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link to="/auth/login" className="text-emerald-600 hover:text-emerald-700 font-medium">
-            Sign In
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
