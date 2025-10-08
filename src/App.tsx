@@ -8,7 +8,7 @@ import { PackageDetails } from './pages/PackageDetails';
 import { Booking } from './pages/Booking';
 import { Contact } from './pages/Contact';
 import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
+import { Signup } from './pages/SignUp';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 

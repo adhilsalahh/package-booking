@@ -7,7 +7,19 @@ interface AuthContextType {
   profile: Profile | null;
   isAdmin: boolean;
   loading: boolean;
-  signUp: (email: string, password: string, username: string, phone: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    username: string,
+    phone: string,
+    additionalData?: {
+      full_name?: string;
+      date_of_birth?: string;
+      address?: string;
+      profile_picture_url?: string;
+      preferences?: Record<string, any>;
+    }
+  ) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   adminSignIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -58,7 +70,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, username: string, phone: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    username: string,
+    phone: string,
+    additionalData?: {
+      full_name?: string;
+      date_of_birth?: string;
+      address?: string;
+      profile_picture_url?: string;
+      preferences?: Record<string, any>;
+    }
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -67,12 +91,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
 
     if (data.user) {
-      const { error: profileError } = await supabase.from('profiles').insert({
+      const profileData: any = {
         id: data.user.id,
         username,
         phone,
         role: 'user',
-      });
+        account_status: 'active',
+        email_verified: false,
+      };
+
+      if (additionalData) {
+        if (additionalData.full_name) profileData.full_name = additionalData.full_name;
+        if (additionalData.date_of_birth) profileData.date_of_birth = additionalData.date_of_birth;
+        if (additionalData.address) profileData.address = additionalData.address;
+        if (additionalData.profile_picture_url)
+          profileData.profile_picture_url = additionalData.profile_picture_url;
+        if (additionalData.preferences) profileData.preferences = additionalData.preferences;
+      }
+
+      const { error: profileError } = await supabase.from('profiles').insert(profileData);
 
       if (profileError) throw profileError;
     }

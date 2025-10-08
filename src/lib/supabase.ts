@@ -15,6 +15,15 @@ export type Profile = {
   phone: string;
   role: 'user' | 'admin';
   created_at: string;
+  full_name?: string;
+  date_of_birth?: string;
+  address?: string;
+  profile_picture_url?: string;
+  preferences?: Record<string, any>;
+  email_verified?: boolean;
+  account_status?: 'active' | 'suspended' | 'deleted';
+  last_login?: string;
+  updated_at?: string;
 };
 
 export type Package = {
