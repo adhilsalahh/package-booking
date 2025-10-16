@@ -54,6 +54,10 @@ export default function BookingPage() {
     setLoading(true);
 
     try {
+      const totalAmount = pkg?.price || 0;
+      const advanceAmount = 500;
+      const remainingAmount = totalAmount - advanceAmount;
+
       const { data, error } = await supabase
         .from('bookings')
         .insert({
@@ -61,8 +65,9 @@ export default function BookingPage() {
           user_id: user?.id,
           travel_date: selectedDate,
           members: members,
-          total_amount: pkg?.price || 0,
-          advance_amount: 500,
+          total_amount: totalAmount,
+          advance_amount: advanceAmount,
+          remaining_amount: remainingAmount,
           status: 'pending',
         })
         .select()
@@ -70,8 +75,8 @@ export default function BookingPage() {
 
       if (error) throw error;
 
-      alert('Booking created successfully!');
-      navigate('/bookings');
+      alert('Booking created successfully! Please proceed to payment.');
+      navigate(`/payment/${data.id}`);
     } catch (error) {
       console.error('Error creating booking:', error);
       alert('Failed to create booking');

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase, PaymentSettings } from '../lib/supabase';
-import { Upload, Smartphone } from 'lucide-react';
+import { Upload, Smartphone, CheckCircle } from 'lucide-react';
 
-export default function PaymentPage() {
+export default function RemainingPaymentPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [booking, setBooking] = useState<any>(null);
@@ -58,15 +58,17 @@ export default function PaymentPage() {
       const { error } = await supabase
         .from('bookings')
         .update({
-          advance_paid: true,
-          advance_utr: utr,
-          advance_receipt_url: receiptUrl,
+          remaining_paid: true,
+          remaining_utr: utr,
+          remaining_receipt_url: receiptUrl,
+          full_payment_done: true,
+          status: 'confirmed',
         })
         .eq('id', id);
 
       if (error) throw error;
 
-      alert('Payment details submitted successfully!');
+      alert('Remaining payment submitted successfully! Your booking is now confirmed.');
       navigate('/bookings');
     } catch (error) {
       console.error('Error updating payment:', error);
@@ -84,10 +86,53 @@ export default function PaymentPage() {
     );
   }
 
+  if (booking.full_payment_done) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto mb-4" />
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">Payment Complete</h1>
+            <p className="text-gray-600 mb-6">
+              Your booking is fully paid and confirmed. Thank you!
+            </p>
+            <button
+              onClick={() => navigate('/bookings')}
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition font-medium"
+            >
+              View My Bookings
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!booking.advance_paid) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="bg-white rounded-lg shadow-md p-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">Advance Payment Required</h1>
+            <p className="text-gray-600 mb-6">
+              Please complete the advance payment first before paying the remaining balance.
+            </p>
+            <button
+              onClick={() => navigate(`/payment/${id}`)}
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition font-medium"
+            >
+              Pay Advance
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">Pay Advance</h1>
+        <h1 className="text-4xl font-bold text-gray-800 mb-8">Pay Remaining Balance</h1>
 
         <div className="bg-white rounded-lg shadow-md p-8">
           <div className="mb-6 pb-6 border-b">
@@ -97,9 +142,17 @@ export default function PaymentPage() {
             <p className="text-gray-600 mb-2">
               Travel Date: {new Date(booking.travel_date).toLocaleDateString()}
             </p>
-            <p className="text-2xl font-bold text-emerald-600">
-              Advance Amount: ₹{booking.advance_amount}
-            </p>
+            <div className="space-y-1 mt-4">
+              <p className="text-gray-700">
+                Total Amount: <span className="font-semibold">₹{booking.total_amount}</span>
+              </p>
+              <p className="text-emerald-600">
+                Advance Paid: <span className="font-semibold">₹{booking.advance_amount}</span>
+              </p>
+              <p className="text-2xl font-bold text-blue-600 mt-2">
+                Remaining Balance: ₹{booking.remaining_amount || (booking.total_amount - booking.advance_amount)}
+              </p>
+            </div>
           </div>
 
           <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
@@ -120,7 +173,7 @@ export default function PaymentPage() {
                 </div>
               </div>
               <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                <li>Pay ₹{booking.advance_amount} to the above GPay or PhonePe number</li>
+                <li>Pay ₹{booking.remaining_amount || (booking.total_amount - booking.advance_amount)} to the above GPay or PhonePe number</li>
                 <li>Take a screenshot of the payment confirmation</li>
                 <li>Enter the UTR/Transaction ID below</li>
                 <li>Upload or paste the screenshot URL</li>
@@ -166,7 +219,7 @@ export default function PaymentPage() {
               className="w-full bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg flex items-center justify-center gap-2"
             >
               <Upload className="w-5 h-5" />
-              {loading ? 'Submitting...' : 'Submit Payment Details'}
+              {loading ? 'Submitting...' : 'Submit Payment & Complete Booking'}
             </button>
           </form>
         </div>

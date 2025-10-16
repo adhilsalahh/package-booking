@@ -10,6 +10,9 @@ interface BookingWithPackage {
   total_amount: number;
   advance_paid: boolean;
   advance_amount: number;
+  remaining_amount: number;
+  remaining_paid: boolean;
+  full_payment_done: boolean;
   status: string;
   created_at: string;
   package: {
@@ -105,22 +108,43 @@ export default function UserBookings() {
                 </div>
 
                 <div className="border-t pt-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        Advance Payment: {booking.advance_paid ? '✓ Paid' : '✗ Not Paid'}
-                      </p>
-                      {booking.advance_paid && (
-                        <p className="text-sm text-gray-600">Amount: ₹{booking.advance_amount}</p>
-                      )}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-sm text-gray-600">
+                          Advance Payment: {booking.advance_paid ? '✓ Paid ₹' + booking.advance_amount : '✗ Not Paid ₹' + booking.advance_amount}
+                        </p>
+                        {booking.advance_paid && (
+                          <p className="text-sm text-gray-600">
+                            Remaining Balance: {booking.remaining_paid ? '✓ Paid' : '✗ Pending'} ₹{booking.remaining_amount}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        {!booking.advance_paid && booking.status === 'pending' && (
+                          <Link
+                            to={`/payment/${booking.id}`}
+                            className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium"
+                          >
+                            Pay Advance
+                          </Link>
+                        )}
+                        {booking.advance_paid && !booking.remaining_paid && booking.status !== 'cancelled' && (
+                          <Link
+                            to={`/remaining-payment/${booking.id}`}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+                          >
+                            Pay Remaining
+                          </Link>
+                        )}
+                      </div>
                     </div>
-                    {!booking.advance_paid && booking.status === 'pending' && (
-                      <Link
-                        to={`/payment/${booking.id}`}
-                        className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition text-sm font-medium"
-                      >
-                        Pay Advance
-                      </Link>
+                    {booking.full_payment_done && (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded p-3">
+                        <p className="text-sm font-medium text-emerald-800">
+                          ✓ Full payment completed. Your booking is confirmed!
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>

@@ -1,63 +1,74 @@
 import { Menu, X, Plane } from 'lucide-react';
 import { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-interface NavbarProps {
-  currentPage: string;
-  onNavigate: (page: string) => void;
-}
-
-export function Navbar({ currentPage, onNavigate }: NavbarProps) {
+export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      onNavigate('home');
+      navigate('/');
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
 
   const navItems = [
-    { id: 'home', label: 'Home' },
-    { id: 'packages', label: 'Packages' },
-    { id: 'contact', label: 'Contact' },
+    { path: '/', label: 'Home' },
+    { path: '/packages', label: 'Packages' },
+    { path: '/contact', label: 'Contact' },
   ];
+
+  const isActivePath = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center cursor-pointer" onClick={() => onNavigate('home')}>
+          <Link to="/" className="flex items-center">
             <Plane className="h-8 w-8 text-blue-600" />
             <span className="ml-2 text-xl font-bold text-gray-800">TripAdikkam</span>
-          </div>
+          </Link>
 
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
+              <Link
+                key={item.path}
+                to={item.path}
                 className={`${
-                  currentPage === item.id
+                  isActivePath(item.path)
                     ? 'text-blue-600 font-semibold'
                     : 'text-gray-600 hover:text-blue-600'
                 } transition-colors`}
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
             {user ? (
               <>
+                <Link
+                  to="/bookings"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  My Bookings
+                </Link>
                 {isAdmin && (
-                  <button
-                    onClick={() => onNavigate('admin')}
+                  <Link
+                    to="/admin"
                     className="text-gray-600 hover:text-blue-600 transition-colors"
                   >
                     Admin Dashboard
-                  </button>
+                  </Link>
                 )}
                 <button
                   onClick={handleSignOut}
@@ -68,18 +79,18 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
               </>
             ) : (
               <>
-                <button
-                  onClick={() => onNavigate('login')}
+                <Link
+                  to="/login"
                   className="text-gray-600 hover:text-blue-600 transition-colors"
                 >
                   Login
-                </button>
-                <button
-                  onClick={() => onNavigate('signup')}
+                </Link>
+                <Link
+                  to="/signup"
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Sign Up
-                </button>
+                </Link>
               </>
             )}
           </div>
@@ -99,33 +110,36 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
         <div className="md:hidden bg-white border-t">
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  onNavigate(item.id);
-                  setMobileMenuOpen(false);
-                }}
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`${
-                  currentPage === item.id
+                  isActivePath(item.path)
                     ? 'bg-blue-50 text-blue-600'
                     : 'text-gray-600 hover:bg-gray-50'
                 } block w-full text-left px-3 py-2 rounded-md transition-colors`}
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
             {user ? (
               <>
+                <Link
+                  to="/bookings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-gray-600 hover:bg-gray-50 block w-full text-left px-3 py-2 rounded-md"
+                >
+                  My Bookings
+                </Link>
                 {isAdmin && (
-                  <button
-                    onClick={() => {
-                      onNavigate('admin');
-                      setMobileMenuOpen(false);
-                    }}
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
                     className="text-gray-600 hover:bg-gray-50 block w-full text-left px-3 py-2 rounded-md"
                   >
                     Admin Dashboard
-                  </button>
+                  </Link>
                 )}
                 <button
                   onClick={handleSignOut}
@@ -136,24 +150,20 @@ export function Navbar({ currentPage, onNavigate }: NavbarProps) {
               </>
             ) : (
               <>
-                <button
-                  onClick={() => {
-                    onNavigate('login');
-                    setMobileMenuOpen(false);
-                  }}
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="text-gray-600 hover:bg-gray-50 block w-full text-left px-3 py-2 rounded-md"
                 >
                   Login
-                </button>
-                <button
-                  onClick={() => {
-                    onNavigate('signup');
-                    setMobileMenuOpen(false);
-                  }}
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
                   className="text-gray-600 hover:bg-gray-50 block w-full text-left px-3 py-2 rounded-md"
                 >
                   Sign Up
-                </button>
+                </Link>
               </>
             )}
           </div>

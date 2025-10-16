@@ -62,7 +62,20 @@ export type Booking = {
   advance_amount: number;
   advance_utr: string | null;
   advance_receipt_url: string | null;
+  remaining_amount: number;
+  remaining_paid: boolean;
+  remaining_utr: string | null;
+  remaining_receipt_url: string | null;
   full_payment_done: boolean;
   status: 'pending' | 'confirmed' | 'cancelled';
   created_at: string;
+};
+
+export type PaymentSettings = {
+  id: string;
+  setting_key: string;
+  setting_value: string;
+  description: string | null;
+  updated_at: string;
+  updated_by: string | null;
 };
