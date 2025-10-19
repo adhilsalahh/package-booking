@@ -12,15 +12,9 @@ interface AuthContextType {
     password: string,
     username: string,
     phone: string,
-    additionalData?: {
-      full_name?: string;
-      date_of_birth?: string;
-      address?: string;
-      profile_picture_url?: string;
-      preferences?: Record<string, any>;
-    }
+    fullName: string
   ) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (identifier: string, password: string) => Promise<void>;
   adminSignIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -75,13 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     username: string,
     phone: string,
-    additionalData?: {
-      full_name?: string;
-      date_of_birth?: string;
-      address?: string;
-      profile_picture_url?: string;
-      preferences?: Record<string, any>;
-    }
+    fullName: string
   ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -91,23 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
 
     if (data.user) {
-      const profileData: any = {
+      const profileData = {
         id: data.user.id,
         username,
+        email,
         phone,
+        full_name: fullName,
         role: 'user',
         account_status: 'active',
-        email_verified: false,
       };
-
-      if (additionalData) {
-        if (additionalData.full_name) profileData.full_name = additionalData.full_name;
-        if (additionalData.date_of_birth) profileData.date_of_birth = additionalData.date_of_birth;
-        if (additionalData.address) profileData.address = additionalData.address;
-        if (additionalData.profile_picture_url)
-          profileData.profile_picture_url = additionalData.profile_picture_url;
-        if (additionalData.preferences) profileData.preferences = additionalData.preferences;
-      }
 
       const { error: profileError } = await supabase.from('profiles').insert(profileData);
 
@@ -115,7 +95,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (identifier: string, password: string) => {
+    let email = identifier;
+
+    if (!identifier.includes('@')) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', identifier)
+        .maybeSingle();
+
+      if (error || !data) {
+        throw new Error('Invalid username or password');
+      }
+
+      email = data.email;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,

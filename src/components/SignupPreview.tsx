@@ -1,4 +1,4 @@
-import { UserCircle, Mail, Phone, Calendar, MapPin, Edit } from 'lucide-react';
+import { UserCircle, Mail, Phone, Edit } from 'lucide-react';
 
 interface SignupData {
   username: string;
@@ -6,13 +6,6 @@ interface SignupData {
   password: string;
   phone: string;
   fullName: string;
-  dateOfBirth: string;
-  address?: string;
-  profilePictureUrl?: string;
-  preferences?: {
-    newsletter?: boolean;
-    notifications?: boolean;
-  };
 }
 
 interface SignupPreviewProps {
@@ -37,16 +30,6 @@ export function SignupPreview({ data, onEdit, onConfirm, loading }: SignupPrevie
       </div>
 
       <div className="space-y-6">
-        {data.profilePictureUrl && (
-          <div className="flex justify-center">
-            <img
-              src={data.profilePictureUrl}
-              alt="Profile"
-              className="h-24 w-24 rounded-full object-cover border-4 border-blue-100"
-            />
-          </div>
-        )}
-
         <div className="grid md:grid-cols-2 gap-6">
           <div className="flex items-start gap-3">
             <div className="bg-blue-100 p-2 rounded-lg">
@@ -88,54 +71,7 @@ export function SignupPreview({ data, onEdit, onConfirm, loading }: SignupPrevie
             </div>
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <Calendar className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">Date of Birth</p>
-              <p className="font-semibold text-gray-800">
-                {new Date(data.dateOfBirth).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-            </div>
-          </div>
-
-          {data.address && (
-            <div className="flex items-start gap-3 md:col-span-2">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <MapPin className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Address</p>
-                <p className="font-semibold text-gray-800">{data.address}</p>
-              </div>
-            </div>
-          )}
         </div>
-
-        {data.preferences && (
-          <div className="border-t pt-6">
-            <h3 className="font-semibold text-gray-800 mb-3">Preferences</h3>
-            <div className="space-y-2">
-              {data.preferences.newsletter && (
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <p className="text-gray-700">Subscribed to newsletter</p>
-                </div>
-              )}
-              {data.preferences.notifications && (
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <p className="text-gray-700">Notifications enabled</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="mt-8 flex gap-4">

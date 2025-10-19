@@ -12,18 +12,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export type Profile = {
   id: string;
   username: string;
+  email: string;
   phone: string;
+  full_name: string;
   role: 'user' | 'admin';
+  account_status: 'active' | 'suspended' | 'deleted';
   created_at: string;
-  full_name?: string;
-  date_of_birth?: string;
-  address?: string;
-  profile_picture_url?: string;
-  preferences?: Record<string, any>;
-  email_verified?: boolean;
-  account_status?: 'active' | 'suspended' | 'deleted';
-  last_login?: string;
-  updated_at?: string;
+  updated_at: string;
 };
 
 export type Package = {

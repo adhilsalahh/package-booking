@@ -8,7 +8,7 @@ interface LoginProps {
 }
 
 export function Login({ onNavigate, showToast }: LoginProps) {
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
@@ -18,7 +18,7 @@ export function Login({ onNavigate, showToast }: LoginProps) {
     setLoading(true);
 
     try {
-      await signIn(email, password);
+      await signIn(identifier, password);
       showToast('Login successful!', 'success');
       onNavigate('home');
     } catch (error: any) {
@@ -45,12 +45,13 @@ export function Login({ onNavigate, showToast }: LoginProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                  Email or Username
                 </label>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="Enter your email or username"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />

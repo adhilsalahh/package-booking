@@ -8,7 +8,6 @@ import {
   validatePhone,
   validateUsername,
   validateFullName,
-  validateDateOfBirth,
   getPasswordStrength,
 } from '../utils/validation';
 
@@ -24,13 +23,6 @@ interface FormData {
   confirmPassword: string;
   phone: string;
   fullName: string;
-  dateOfBirth: string;
-  address: string;
-  profilePictureUrl: string;
-  preferences: {
-    newsletter: boolean;
-    notifications: boolean;
-  };
 }
 
 interface FormErrors {
@@ -45,13 +37,6 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
     confirmPassword: '',
     phone: '',
     fullName: '',
-    dateOfBirth: '',
-    address: '',
-    profilePictureUrl: '',
-    preferences: {
-      newsletter: false,
-      notifications: true,
-    },
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -60,21 +45,9 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
   const [showPreview, setShowPreview] = useState(false);
   const { signUp } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-
-    if (type === 'checkbox') {
-      const checked = (e.target as HTMLInputElement).checked;
-      if (name.startsWith('preferences.')) {
-        const prefKey = name.split('.')[1];
-        setFormData({
-          ...formData,
-          preferences: { ...formData.preferences, [prefKey]: checked },
-        });
-      }
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
 
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
@@ -113,11 +86,6 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
       newErrors.fullName = fullNameValidation.error!;
     }
 
-    const dobValidation = validateDateOfBirth(formData.dateOfBirth);
-    if (!dobValidation.isValid) {
-      newErrors.dateOfBirth = dobValidation.error!;
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -137,13 +105,7 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
         formData.password,
         formData.username,
         formData.phone,
-        {
-          full_name: formData.fullName,
-          date_of_birth: formData.dateOfBirth,
-          address: formData.address || undefined,
-          profile_picture_url: formData.profilePictureUrl || undefined,
-          preferences: formData.preferences,
-        }
+        formData.fullName
       );
       showToast('Account created successfully!', 'success');
       onNavigate('login');
@@ -163,11 +125,7 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
       <div className="min-h-screen bg-gray-50 pt-24 pb-12 flex items-center justify-center">
         <div className="max-w-2xl w-full mx-4">
           <SignupPreview
-            data={{
-              ...formData,
-              fullName: formData.fullName,
-              dateOfBirth: formData.dateOfBirth,
-            }}
+            data={formData}
             onEdit={() => setShowPreview(false)}
             onConfirm={handleConfirmSignup}
             loading={loading}
@@ -191,7 +149,7 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
 
           <form onSubmit={handlePreview}>
             <div className="space-y-6">
-              <div className="border-b pb-6">
+              <div>
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Account Information</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -340,11 +298,8 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
                     )}
                   </div>
                 </div>
-              </div>
 
-              <div className="border-b pb-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h2>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-4 mt-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Full Name <span className="text-red-500">*</span>
@@ -389,87 +344,6 @@ export function Signup({ onNavigate, showToast }: SignupProps) {
                       </p>
                     )}
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date of Birth <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      value={formData.dateOfBirth}
-                      onChange={handleChange}
-                      max={new Date().toISOString().split('T')[0]}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      required
-                    />
-                    {errors.dateOfBirth && (
-                      <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.dateOfBirth}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Profile Picture URL <span className="text-gray-400">(Optional)</span>
-                    </label>
-                    <input
-                      type="url"
-                      name="profilePictureUrl"
-                      value={formData.profilePictureUrl}
-                      onChange={handleChange}
-                      placeholder="https://example.com/photo.jpg"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address <span className="text-gray-400">(Optional)</span>
-                    </label>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      rows={3}
-                      placeholder="Street address, city, state, zip code"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Preferences</h2>
-                <div className="space-y-3">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="preferences.newsletter"
-                      checked={formData.preferences.newsletter}
-                      onChange={handleChange}
-                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-700">
-                      Subscribe to newsletter for latest travel deals and updates
-                    </span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="preferences.notifications"
-                      checked={formData.preferences.notifications}
-                      onChange={handleChange}
-                      className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-gray-700">
-                      Enable notifications for booking updates and reminders
-                    </span>
-                  </label>
                 </div>
               </div>
 
