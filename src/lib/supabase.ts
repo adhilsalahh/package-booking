@@ -18,17 +18,27 @@ export type Package = {
   id: string;
   title: string;
   description: string;
-  destination: string;
-  duration_days: number;
-  price_per_head: number;
-  advance_payment: number;
-  max_capacity: number;
-  start_date: string;
-  end_date: string;
-  image_url: string | null;
-  is_active: boolean;
-  created_by: string | null;
-  created_at: string;
+  destination?: string;
+  duration_days?: number;
+  duration?: string;
+  price_per_head?: number;
+  price?: number;
+  advance_payment?: number;
+  max_capacity?: number;
+  start_date?: string;
+  end_date?: string;
+  image_url?: string | null;
+  images?: string[];
+  is_active?: boolean;
+  created_by?: string | null;
+  created_at?: string;
+};
+
+export type PackageDate = {
+  id: string;
+  package_id: string;
+  available_date: string;
+  seats: number;
 };
 
 export type Booking = {

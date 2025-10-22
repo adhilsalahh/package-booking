@@ -1,12 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Calendar, IndianRupee, Clock } from 'lucide-react';
 import { supabase, Package } from '../lib/supabase';
 
-interface PackagesProps {
-  onNavigate: (page: string, packageId?: string) => void;
-}
-
-export function Packages({ onNavigate }: PackagesProps) {
+export function Packages() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +16,7 @@ export function Packages({ onNavigate }: PackagesProps) {
       const { data, error } = await supabase
         .from('packages')
         .select('*')
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -57,17 +55,17 @@ export function Packages({ onNavigate }: PackagesProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {packages.map((pkg) => (
-              <div
+              <Link
                 key={pkg.id}
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden cursor-pointer transform hover:-translate-y-1"
-                onClick={() => onNavigate('package-details', pkg.id)}
+                to={`/package/${pkg.id}`}
+                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all overflow-hidden group transform hover:-translate-y-1"
               >
                 <div className="h-48 bg-gray-200 overflow-hidden">
-                  {pkg.images && pkg.images.length > 0 ? (
+                  {pkg.image_url ? (
                     <img
-                      src={pkg.images[0]}
+                      src={pkg.image_url}
                       alt={pkg.title}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
@@ -78,27 +76,21 @@ export function Packages({ onNavigate }: PackagesProps) {
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-gray-800 mb-2">{pkg.title}</h3>
                   <p className="text-gray-600 mb-4 line-clamp-2">{pkg.description}</p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center text-gray-700">
                       <Clock className="h-4 w-4 mr-1" />
-                      <span className="text-sm">{pkg.duration}</span>
+                      <span className="text-sm">{pkg.duration_days} days</span>
                     </div>
                     <div className="flex items-center text-blue-600 font-bold">
                       <IndianRupee className="h-5 w-5" />
-                      <span className="text-xl">{pkg.price.toLocaleString()}</span>
+                      <span className="text-xl">{pkg.price_per_head?.toLocaleString()}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onNavigate('package-details', pkg.id);
-                    }}
-                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                  >
+                  <div className="w-full bg-blue-600 text-white py-2 rounded-lg text-center group-hover:bg-blue-700 transition-colors">
                     View Details
-                  </button>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

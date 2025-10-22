@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Calendar, IndianRupee, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase, Package, PackageDate } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
-interface PackageDetailsProps {
-  packageId: string;
-  onNavigate: (page: string, data?: any) => void;
-  showToast: (message: string, type: 'success' | 'error') => void;
-}
-
-export function PackageDetails({ packageId, onNavigate, showToast }: PackageDetailsProps) {
+export function PackageDetails() {
+  const { id: packageId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [pkg, setPackage] = useState<Package | null>(null);
   const [dates, setDates] = useState<PackageDate[]>([]);
   const [selectedDate, setSelectedDate] = useState<PackageDate | null>(null);
@@ -18,10 +15,14 @@ export function PackageDetails({ packageId, onNavigate, showToast }: PackageDeta
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchPackageDetails();
+    if (packageId) {
+      fetchPackageDetails();
+    }
   }, [packageId]);
 
   const fetchPackageDetails = async () => {
+    if (!packageId) return;
+
     try {
       const [pkgResponse, datesResponse] = await Promise.all([
         supabase.from('packages').select('*').eq('id', packageId).maybeSingle(),
@@ -35,7 +36,6 @@ export function PackageDetails({ packageId, onNavigate, showToast }: PackageDeta
       setDates(datesResponse.data || []);
     } catch (error) {
       console.error('Error fetching package details:', error);
-      showToast('Failed to load package details', 'error');
     } finally {
       setLoading(false);
     }
@@ -43,33 +43,32 @@ export function PackageDetails({ packageId, onNavigate, showToast }: PackageDeta
 
   const handleBookNow = () => {
     if (!user) {
-      showToast('Please login to book a package', 'error');
-      onNavigate('login');
+      navigate('/login');
       return;
     }
 
     if (!selectedDate) {
-      showToast('Please select a travel date', 'error');
+      alert('Please select a travel date');
       return;
     }
 
     if (selectedDate.seats <= 0) {
-      showToast('No seats available for this date', 'error');
+      alert('No seats available for this date');
       return;
     }
 
-    onNavigate('booking', { package: pkg, date: selectedDate });
+    navigate(`/booking/${packageId}`, { state: { package: pkg, date: selectedDate } });
   };
 
   const nextImage = () => {
-    if (pkg?.images && pkg.images.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % pkg.images.length);
+    if (pkg?.image_url) {
+      return;
     }
   };
 
   const prevImage = () => {
-    if (pkg?.images && pkg.images.length > 1) {
-      setCurrentImageIndex((prev) => (prev - 1 + pkg.images.length) % pkg.images.length);
+    if (pkg?.image_url) {
+      return;
     }
   };
 
@@ -86,12 +85,12 @@ export function PackageDetails({ packageId, onNavigate, showToast }: PackageDeta
       <div className="min-h-screen bg-gray-50 pt-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-gray-600 text-lg">Package not found</p>
-          <button
-            onClick={() => onNavigate('packages')}
-            className="mt-4 text-blue-600 hover:underline"
+          <Link
+            to="/packages"
+            className="mt-4 text-blue-600 hover:underline inline-block"
           >
             Back to Packages
-          </button>
+          </Link>
         </div>
       </div>
     );
@@ -100,50 +99,22 @@ export function PackageDetails({ packageId, onNavigate, showToast }: PackageDeta
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button
-          onClick={() => onNavigate('packages')}
+        <Link
+          to="/packages"
           className="text-blue-600 hover:text-blue-700 mb-6 flex items-center"
         >
           <ChevronLeft className="h-5 w-5" />
           Back to Packages
-        </button>
+        </Link>
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <div className="relative h-96 bg-gray-200">
-            {pkg.images && pkg.images.length > 0 ? (
-              <>
-                <img
-                  src={pkg.images[currentImageIndex]}
-                  alt={pkg.title}
-                  className="w-full h-full object-cover"
-                />
-                {pkg.images.length > 1 && (
-                  <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
-                    >
-                      <ChevronLeft className="h-6 w-6 text-gray-800" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full"
-                    >
-                      <ChevronRight className="h-6 w-6 text-gray-800" />
-                    </button>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-                      {pkg.images.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`h-2 w-2 rounded-full ${
-                            index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-              </>
+            {pkg.image_url ? (
+              <img
+                src={pkg.image_url}
+                alt={pkg.title}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
                 <Calendar className="h-24 w-24 text-white opacity-50" />
@@ -157,11 +128,11 @@ export function PackageDetails({ packageId, onNavigate, showToast }: PackageDeta
             <div className="flex items-center space-x-6 mb-6">
               <div className="flex items-center text-gray-700">
                 <Clock className="h-5 w-5 mr-2" />
-                <span>{pkg.duration}</span>
+                <span>{pkg.duration_days} days</span>
               </div>
               <div className="flex items-center text-blue-600 font-bold text-2xl">
                 <IndianRupee className="h-6 w-6" />
-                <span>{pkg.price.toLocaleString()}</span>
+                <span>{pkg.price_per_head?.toLocaleString()}</span>
                 <span className="text-sm text-gray-600 ml-2">per person</span>
               </div>
             </div>
