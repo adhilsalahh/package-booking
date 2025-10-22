@@ -1,28 +1,52 @@
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { AuthForms } from './components/AuthForms';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-import { UserDashboard } from './components/user/UserDashboard';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Packages from './pages/Packages';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
+import Bookings from './pages/Bookings';
+import Admin from './pages/Admin';
+import { Loader } from 'lucide-react';
 
-function AppContent() {
-  const { user, profile, loading } = useAuth();
+const AppContent: React.FC = () => {
+  const { loading } = useAuth();
+  const [currentPage, setCurrentPage] = useState('home');
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="text-gray-600 mt-4">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <Loader className="h-12 w-12 text-blue-600 animate-spin" />
       </div>
     );
   }
 
-  if (!user || !profile) {
-    return <AuthForms />;
-  }
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <Home onNavigate={setCurrentPage} />;
+      case 'packages':
+        return <Packages onNavigate={setCurrentPage} />;
+      case 'contact':
+        return <Contact />;
+      case 'login':
+        return <Login onNavigate={setCurrentPage} />;
+      case 'bookings':
+        return <Bookings />;
+      case 'admin':
+        return <Admin />;
+      default:
+        return <Home onNavigate={setCurrentPage} />;
+    }
+  };
 
-  return profile.role === 'admin' ? <AdminDashboard /> : <UserDashboard />;
-}
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
+      {renderPage()}
+    </div>
+  );
+};
 
 function App() {
   return (
