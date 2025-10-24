@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Package, Users, CreditCard, Calendar, Plus, Edit2, Trash2, Check, X, Loader, Settings, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
 import { SiteSettings } from '../components/admin/SiteSettings';
 import type { Database } from '../lib/supabase';
 
@@ -25,7 +24,7 @@ interface AdminProps {
 }
 
 const Admin: React.FC<AdminProps> = ({ onNavigate, showToast }) => {
-  const { profile, signOut } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'packages' | 'users' | 'bookings' | 'payments' | 'settings'>('packages');
   const [loading, setLoading] = useState(false);
 
@@ -46,10 +45,17 @@ const Admin: React.FC<AdminProps> = ({ onNavigate, showToast }) => {
   });
 
   useEffect(() => {
-    if (profile?.is_admin) {
+    const adminUser = localStorage.getItem('admin_user');
+    if (adminUser) {
+      setIsAdmin(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) {
       loadData();
     }
-  }, [activeTab, profile]);
+  }, [activeTab, isAdmin]);
 
   const loadData = async () => {
     setLoading(true);
@@ -226,13 +232,16 @@ const Admin: React.FC<AdminProps> = ({ onNavigate, showToast }) => {
     adminNotes: string = ''
   ) => {
     try {
+      const adminUser = localStorage.getItem('admin_user');
+      const admin = adminUser ? JSON.parse(adminUser) : null;
+
       const { error } = await supabase
         .from('payments')
         .update({
           payment_status: status,
           admin_notes: adminNotes,
           verified_at: status === 'verified' ? new Date().toISOString() : null,
-          verified_by: profile?.id,
+          verified_by: admin?.admin_id,
           updated_at: new Date().toISOString(),
         })
         .eq('id', paymentId);
@@ -245,7 +254,7 @@ const Admin: React.FC<AdminProps> = ({ onNavigate, showToast }) => {
     }
   };
 
-  if (!profile?.is_admin) {
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -256,14 +265,10 @@ const Admin: React.FC<AdminProps> = ({ onNavigate, showToast }) => {
     );
   }
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      showToast('Signed out successfully', 'success');
-      onNavigate('home');
-    } catch (error: any) {
-      showToast('Error signing out: ' + error.message, 'error');
-    }
+  const handleSignOut = () => {
+    localStorage.removeItem('admin_user');
+    showToast('Signed out successfully', 'success');
+    onNavigate('home');
   };
 
   return (

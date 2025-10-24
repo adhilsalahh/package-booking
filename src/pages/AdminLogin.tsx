@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
 interface AdminLoginProps {
@@ -16,7 +15,6 @@ export function AdminLogin({ onNavigate, showToast }: AdminLoginProps) {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutTime, setLockoutTime] = useState(0);
-  const { adminSignIn } = useAuth();
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -35,18 +33,6 @@ export function AdminLogin({ onNavigate, showToast }: AdminLoginProps) {
     return () => clearInterval(timer);
   }, [isLocked, lockoutTime]);
 
-  const logLoginAttempt = async (success: boolean) => {
-    try {
-      await supabase.from('login_attempts').insert({
-        email,
-        success,
-        ip_address: 'client',
-      });
-    } catch (error) {
-      console.error('Failed to log login attempt:', error);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -58,14 +44,30 @@ export function AdminLogin({ onNavigate, showToast }: AdminLoginProps) {
     setLoading(true);
 
     try {
-      await adminSignIn(email, password);
-      await logLoginAttempt(true);
+      const { data, error } = await supabase.rpc('verify_admin_login', {
+        login_email: email,
+        login_password: password,
+      });
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        throw new Error('Invalid credentials');
+      }
+
+      const admin = data[0];
+
+      await supabase.rpc('update_admin_last_login', {
+        admin_id: admin.admin_id,
+      });
+
+      localStorage.setItem('admin_user', JSON.stringify(admin));
+
       setFailedAttempts(0);
       showToast('Admin login successful!', 'success');
       onNavigate('admin-dashboard');
     } catch (error: any) {
       console.error('Admin login error:', error);
-      await logLoginAttempt(false);
 
       const newFailedAttempts = failedAttempts + 1;
       setFailedAttempts(newFailedAttempts);
@@ -76,7 +78,7 @@ export function AdminLogin({ onNavigate, showToast }: AdminLoginProps) {
         showToast('Too many failed attempts. Account locked for 60 seconds', 'error');
       } else {
         showToast(
-          error.message || `Failed to login. ${3 - newFailedAttempts} attempts remaining`,
+          `Invalid credentials. ${3 - newFailedAttempts} attempts remaining`,
           'error'
         );
       }
