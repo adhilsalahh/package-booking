@@ -65,7 +65,7 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
           user_id: user.id,
           package_id: bookingPackage.id,
           requested_date: bookingForm.requested_date || null,
-          total_amount: bookingPackage.price,
+          total_amount: bookingPackage.price_per_head,
           special_requests: bookingForm.special_requests,
         })
         .select()
@@ -78,7 +78,7 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
         .insert({
           booking_id: bookingData.id,
           user_id: user.id,
-          amount: bookingPackage.price,
+          amount: bookingPackage.advance_payment,
         });
 
       if (paymentError) throw paymentError;
@@ -138,32 +138,26 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
                   <div className="h-48 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
                     <img
                       src={pkg.image_url}
-                      alt={pkg.name}
+                      alt={pkg.title}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 )}
                 <div className="p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{pkg.name}</h3>
-                  <p className="text-gray-600 mb-4 leading-relaxed">{pkg.description}</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{pkg.title}</h3>
+                  <p className="text-gray-600 mb-2 leading-relaxed">{pkg.description}</p>
+                  <p className="text-sm text-gray-500 mb-4">{pkg.destination}</p>
 
                   <div className="mb-6">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-4xl font-bold text-blue-600">${pkg.price}</span>
-                      <span className="ml-2 text-gray-500">/ {pkg.duration}</span>
+                      <span className="text-4xl font-bold text-blue-600">₹{pkg.price_per_head}</span>
+                      <span className="ml-2 text-gray-500">/ {pkg.duration_days} Days</span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <div>Advance: ₹{pkg.advance_payment}</div>
+                      <div>Dates: {new Date(pkg.start_date).toLocaleDateString()} - {new Date(pkg.end_date).toLocaleDateString()}</div>
                     </div>
                   </div>
-
-                  {pkg.features && Array.isArray(pkg.features) && pkg.features.length > 0 && (
-                    <div className="mb-6 space-y-3">
-                      {pkg.features.map((feature, index) => (
-                        <div key={index} className="flex items-start space-x-3">
-                          <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-gray-700">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
 
                   <button
                     onClick={() => handleBookNow(pkg)}
@@ -210,10 +204,14 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
                 />
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-700 font-medium">Total Amount:</span>
-                  <span className="text-2xl font-bold text-blue-600">${bookingPackage.price}</span>
+                  <span className="text-2xl font-bold text-blue-600">₹{bookingPackage.price_per_head}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Advance Payment:</span>
+                  <span className="text-lg font-semibold text-green-600">₹{bookingPackage.advance_payment}</span>
                 </div>
               </div>
 

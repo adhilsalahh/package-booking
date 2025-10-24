@@ -20,14 +20,19 @@ export function PackageManagement({ showToast }: PackageManagementProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    price: 0,
-    duration: '',
-    images: '',
+    destination: '',
+    price_per_head: 0,
+    advance_payment: 0,
+    duration_days: 1,
+    start_date: '',
+    end_date: '',
+    max_capacity: 50,
+    image_url: '',
   });
 
   const [dateFormData, setDateFormData] = useState({
     available_date: '',
-    seats: 0,
+    seats: 50,
   });
 
   useEffect(() => {
@@ -69,7 +74,18 @@ export function PackageManagement({ showToast }: PackageManagementProps) {
 
   const openAddModal = () => {
     setEditingPackage(null);
-    setFormData({ title: '', description: '', price: 0, duration: '', images: '' });
+    setFormData({
+      title: '',
+      description: '',
+      destination: '',
+      price_per_head: 0,
+      advance_payment: 0,
+      duration_days: 1,
+      start_date: '',
+      end_date: '',
+      max_capacity: 50,
+      image_url: ''
+    });
     setShowModal(true);
   };
 
@@ -78,9 +94,14 @@ export function PackageManagement({ showToast }: PackageManagementProps) {
     setFormData({
       title: pkg.title,
       description: pkg.description,
-      price: pkg.price,
-      duration: pkg.duration,
-      images: pkg.images.join('\n'),
+      destination: pkg.destination,
+      price_per_head: pkg.price_per_head,
+      advance_payment: pkg.advance_payment,
+      duration_days: pkg.duration_days,
+      start_date: pkg.start_date,
+      end_date: pkg.end_date,
+      max_capacity: pkg.max_capacity,
+      image_url: pkg.image_url || '',
     });
     setShowModal(true);
   };
@@ -95,17 +116,17 @@ export function PackageManagement({ showToast }: PackageManagementProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const imageArray = formData.images
-      .split('\n')
-      .map((url) => url.trim())
-      .filter((url) => url);
-
     const packageData = {
       title: formData.title,
       description: formData.description,
-      price: formData.price,
-      duration: formData.duration,
-      images: imageArray,
+      destination: formData.destination,
+      price_per_head: formData.price_per_head,
+      advance_payment: formData.advance_payment,
+      duration_days: formData.duration_days,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
+      max_capacity: formData.max_capacity,
+      image_url: formData.image_url || null,
       created_by: user?.id,
     };
 
@@ -217,7 +238,10 @@ export function PackageManagement({ showToast }: PackageManagementProps) {
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Duration
+                  Destination
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Dates
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Price
@@ -234,10 +258,15 @@ export function PackageManagement({ showToast }: PackageManagementProps) {
                     <div className="text-sm font-medium text-gray-900">{pkg.title}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{pkg.duration}</div>
+                    <div className="text-sm text-gray-600">{pkg.destination}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">₹{pkg.price.toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">
+                      {new Date(pkg.start_date).toLocaleDateString()} - {new Date(pkg.end_date).toLocaleDateString()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">₹{pkg.price_per_head.toLocaleString()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex space-x-2">
@@ -301,44 +330,97 @@ export function PackageManagement({ showToast }: PackageManagementProps) {
                     <textarea
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={4}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Destination</label>
+                    <input
+                      type="text"
+                      value={formData.destination}
+                      onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+                      placeholder="e.g., Kerala, India"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Price (₹)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Price Per Head (₹)</label>
                       <input
                         type="number"
-                        value={formData.price || ''}
-                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                        value={formData.price_per_head || ''}
+                        onChange={(e) => setFormData({ ...formData, price_per_head: parseFloat(e.target.value) || 0 })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required
                         min="0"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Advance Payment (₹)</label>
                       <input
-                        type="text"
-                        value={formData.duration}
-                        onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                        placeholder="e.g., 3 Days 2 Nights"
+                        type="number"
+                        value={formData.advance_payment || ''}
+                        onChange={(e) => setFormData({ ...formData, advance_payment: parseFloat(e.target.value) || 0 })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Duration (Days)</label>
+                      <input
+                        type="number"
+                        value={formData.duration_days || ''}
+                        onChange={(e) => setFormData({ ...formData, duration_days: parseInt(e.target.value) || 1 })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                        min="1"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                      <input
+                        type="date"
+                        value={formData.start_date}
+                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                      <input
+                        type="date"
+                        value={formData.end_date}
+                        onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         required
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Image URLs (one per line)
-                    </label>
-                    <textarea
-                      value={formData.images}
-                      onChange={(e) => setFormData({ ...formData, images: e.target.value })}
-                      rows={3}
-                      placeholder="https://example.com/image1.jpg"
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Capacity</label>
+                    <input
+                      type="number"
+                      value={formData.max_capacity || ''}
+                      onChange={(e) => setFormData({ ...formData, max_capacity: parseInt(e.target.value) || 50 })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+                    <input
+                      type="url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      placeholder="https://example.com/image.jpg"
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

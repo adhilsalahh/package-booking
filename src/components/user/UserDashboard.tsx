@@ -25,7 +25,6 @@ export function UserDashboard() {
         .from('packages')
         .select('*')
         .eq('is_active', true)
-        .gte('start_date', new Date().toISOString().split('T')[0])
         .order('start_date', { ascending: true });
 
       const { data: bookingsData } = await supabase
