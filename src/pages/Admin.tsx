@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Users, CreditCard, Calendar, Plus, Edit2, Trash2, Check, X, Loader } from 'lucide-react';
+import { Package, Users, CreditCard, Calendar, Plus, Edit2, Trash2, Check, X, Loader, Settings, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { SiteSettings } from '../components/admin/SiteSettings';
 import type { Database } from '../lib/supabase';
 
 type Package = Database['public']['Tables']['packages']['Row'];
@@ -18,9 +19,14 @@ type Payment = Database['public']['Tables']['payments']['Row'] & {
   profiles: Database['public']['Tables']['profiles']['Row'];
 };
 
-const Admin: React.FC = () => {
-  const { profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'packages' | 'users' | 'bookings' | 'payments'>('packages');
+interface AdminProps {
+  onNavigate: (page: string) => void;
+  showToast: (message: string, type: 'success' | 'error') => void;
+}
+
+const Admin: React.FC<AdminProps> = ({ onNavigate, showToast }) => {
+  const { profile, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState<'packages' | 'users' | 'bookings' | 'payments' | 'settings'>('packages');
   const [loading, setLoading] = useState(false);
 
   const [packages, setPackages] = useState<Package[]>([]);
@@ -250,14 +256,42 @@ const Admin: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage packages, users, bookings, and payments</p>
-        </div>
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      showToast('Signed out successfully', 'success');
+      onNavigate('home');
+    } catch (error: any) {
+      showToast('Error signing out: ' + error.message, 'error');
+    }
+  };
 
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      <div className="bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => onNavigate('home')}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                View Site
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-xl shadow-lg mb-8 overflow-hidden">
           <div className="flex flex-wrap border-b border-gray-200">
             {[
@@ -265,6 +299,7 @@ const Admin: React.FC = () => {
               { id: 'users', label: 'Users', icon: Users },
               { id: 'bookings', label: 'Bookings', icon: Calendar },
               { id: 'payments', label: 'Payments', icon: CreditCard },
+              { id: 'settings', label: 'Settings', icon: Settings },
             ].map((tab) => {
               const Icon = tab.icon;
               return (
@@ -604,6 +639,8 @@ const Admin: React.FC = () => {
                 ))}
               </div>
             )}
+
+            {activeTab === 'settings' && <SiteSettings showToast={showToast} />}
           </>
         )}
       </div>

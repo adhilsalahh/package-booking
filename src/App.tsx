@@ -41,16 +41,16 @@ const AppContent: React.FC = () => {
         return <Login onNavigate={setCurrentPage} />;
       case 'bookings':
         return <Bookings />;
-      case 'admin-login':
-        return <AdminLogin onNavigate={setCurrentPage} showToast={showToast} />;
       case 'admin':
-        return <Admin />;
+        return <AdminLogin onNavigate={setCurrentPage} showToast={showToast} />;
+      case 'admin-dashboard':
+        return <Admin onNavigate={setCurrentPage} showToast={showToast} />;
       default:
         return <Home onNavigate={setCurrentPage} />;
     }
   };
 
-  const showNavbar = currentPage !== 'admin-login';
+  const showNavbar = currentPage !== 'admin' && currentPage !== 'admin-dashboard';
 
   return (
     <div className="min-h-screen bg-gray-50">

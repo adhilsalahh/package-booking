@@ -62,7 +62,7 @@ export function AdminLogin({ onNavigate, showToast }: AdminLoginProps) {
       await logLoginAttempt(true);
       setFailedAttempts(0);
       showToast('Admin login successful!', 'success');
-      onNavigate('admin');
+      onNavigate('admin-dashboard');
     } catch (error: any) {
       console.error('Admin login error:', error);
       await logLoginAttempt(false);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Shield, Clock, Star, Mountain, Camera, Users, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface HomeProps {
   onNavigate: (page: string) => void;
@@ -8,6 +9,9 @@ interface HomeProps {
 const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   const [currentTrekkingSlide, setCurrentTrekkingSlide] = useState(0);
   const [currentGallerySlide, setCurrentGallerySlide] = useState(0);
+  const [heroTitle, setHeroTitle] = useState('Welcome to PackTrack');
+  const [heroSubtitle, setHeroSubtitle] = useState('Your trusted partner for package booking and tracking. Experience seamless service with our comprehensive booking system.');
+  const [heroImageUrl, setHeroImageUrl] = useState('');
 
   const features = [
     {
@@ -32,65 +36,117 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
     },
   ];
 
-  const trekkingImages = [
+  const defaultTrekkingImages = [
     {
       title: 'Mountain Trekking',
       description: 'Experience breathtaking mountain trails',
       icon: Mountain,
-      gradient: 'from-emerald-500 to-teal-600'
+      gradient: 'from-emerald-500 to-teal-600',
+      image_url: ''
     },
     {
       title: 'Forest Trails',
       description: 'Explore lush green forest paths',
       icon: MapPin,
-      gradient: 'from-teal-500 to-cyan-600'
+      gradient: 'from-teal-500 to-cyan-600',
+      image_url: ''
     },
     {
       title: 'Group Adventures',
       description: 'Join fellow adventurers on epic journeys',
       icon: Users,
-      gradient: 'from-cyan-500 to-blue-600'
+      gradient: 'from-cyan-500 to-blue-600',
+      image_url: ''
     },
     {
       title: 'Scenic Photography',
       description: 'Capture stunning natural landscapes',
       icon: Camera,
-      gradient: 'from-blue-500 to-indigo-600'
+      gradient: 'from-blue-500 to-indigo-600',
+      image_url: ''
     }
   ];
 
-  const galleryImages = [
+  const defaultGalleryImages = [
     {
       title: 'Backwater Cruise',
       color: 'bg-gradient-to-br from-emerald-400 to-teal-500',
-      icon: '🚢'
+      icon: '🚢',
+      image_url: ''
     },
     {
       title: 'Tea Gardens',
       color: 'bg-gradient-to-br from-green-400 to-emerald-500',
-      icon: '🍃'
+      icon: '🍃',
+      image_url: ''
     },
     {
       title: 'Beach Paradise',
       color: 'bg-gradient-to-br from-cyan-400 to-blue-500',
-      icon: '🏖️'
+      icon: '🏖️',
+      image_url: ''
     },
     {
       title: 'Wildlife Safari',
       color: 'bg-gradient-to-br from-amber-400 to-orange-500',
-      icon: '🦁'
+      icon: '🦁',
+      image_url: ''
     },
     {
       title: 'Cultural Heritage',
       color: 'bg-gradient-to-br from-rose-400 to-pink-500',
-      icon: '🏛️'
+      icon: '🏛️',
+      image_url: ''
     },
     {
       title: 'Mountain Views',
       color: 'bg-gradient-to-br from-slate-400 to-gray-500',
-      icon: '⛰️'
+      icon: '⛰️',
+      image_url: ''
     }
   ];
+
+  const [trekkingImages, setTrekkingImages] = useState(defaultTrekkingImages);
+  const [galleryImages, setGalleryImages] = useState(defaultGalleryImages);
+
+  useEffect(() => {
+    loadSiteSettings();
+  }, []);
+
+  const loadSiteSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        if (data.hero_title) setHeroTitle(data.hero_title);
+        if (data.hero_subtitle) setHeroSubtitle(data.hero_subtitle);
+        if (data.hero_image_url) setHeroImageUrl(data.hero_image_url);
+
+        if (data.trekking_images && Array.isArray(data.trekking_images) && data.trekking_images.length > 0) {
+          const mappedTrekking = data.trekking_images.map((img: any, idx: number) => ({
+            ...defaultTrekkingImages[idx % defaultTrekkingImages.length],
+            ...img
+          }));
+          setTrekkingImages(mappedTrekking);
+        }
+
+        if (data.gallery_images && Array.isArray(data.gallery_images) && data.gallery_images.length > 0) {
+          const mappedGallery = data.gallery_images.map((img: any, idx: number) => ({
+            ...defaultGalleryImages[idx % defaultGalleryImages.length],
+            ...img
+          }));
+          setGalleryImages(mappedGallery);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading site settings:', err);
+    }
+  };
 
   useEffect(() => {
     const trekkingInterval = setInterval(() => {
@@ -125,16 +181,23 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
-      <section className="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white py-24 px-4 overflow-hidden">
+      <section
+        className="relative bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white py-24 px-4 overflow-hidden"
+        style={heroImageUrl ? {
+          backgroundImage: `linear-gradient(rgba(16, 185, 129, 0.8), rgba(20, 184, 166, 0.8)), url(${heroImageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        } : {}}
+      >
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center animate-fade-in">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight animate-slide-down">
-              Welcome to PackTrack
+              {heroTitle}
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-emerald-50 max-w-3xl mx-auto leading-relaxed animate-slide-up">
-              Your trusted partner for package booking and tracking. Experience seamless service with our comprehensive booking system.
+              {heroSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay">
               <button
@@ -175,6 +238,11 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                     <div
                       key={index}
                       className={`min-w-full bg-gradient-to-br ${trek.gradient} p-16 flex items-center justify-center`}
+                      style={trek.image_url ? {
+                        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${trek.image_url})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                      } : {}}
                     >
                       <div className="text-center text-white">
                         <div className="inline-flex items-center justify-center w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full mb-6">
@@ -238,6 +306,11 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                       <div
                         key={itemIndex}
                         className={`${item.color} rounded-xl p-12 shadow-lg hover:shadow-2xl transition-all transform hover:scale-105 hover:-rotate-1 cursor-pointer group`}
+                        style={item.image_url ? {
+                          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${item.image_url})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center'
+                        } : {}}
                       >
                         <div className="text-center text-white">
                           <div className="text-6xl mb-4 transform group-hover:scale-125 transition-transform">
@@ -328,7 +401,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="mb-4">&copy; 2025 PackTrack. All rights reserved.</p>
           <button
-            onClick={() => onNavigate('admin-login')}
+            onClick={() => onNavigate('admin')}
             className="text-gray-500 hover:text-gray-400 text-sm transition-colors"
           >
             Admin Access
