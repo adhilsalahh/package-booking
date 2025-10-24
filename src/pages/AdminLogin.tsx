@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
 interface AdminLoginProps {

@@ -35,7 +35,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => onNavigate('home')}>
-            <Package className="h-8 w-8 text-blue-600" />
+            <Package className="h-8 w-8 text-emerald-600" />
             <span className="text-xl font-bold text-gray-900">PackTrack</span>
           </div>
 
@@ -48,7 +48,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                   onClick={() => onNavigate(link.id)}
                   className={`flex items-center space-x-1 px-4 py-2 rounded-lg transition-colors ${
                     currentPage === link.id
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-emerald-100 text-emerald-700'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -63,7 +63,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                 onClick={() => onNavigate('admin')}
                 className={`flex items-center space-x-1 px-4 py-2 rounded-lg transition-colors ${
                   currentPage === 'admin'
-                    ? 'bg-purple-100 text-purple-700'
+                    ? 'bg-amber-100 text-amber-700'
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -80,7 +80,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                   <User className="h-4 w-4 text-gray-600" />
                   <span className="text-sm text-gray-700">{profile?.name}</span>
                   {profile?.is_admin && (
-                    <span className="ml-2 px-2 py-0.5 bg-purple-200 text-purple-800 text-xs rounded-full">
+                    <span className="ml-2 px-2 py-0.5 bg-amber-200 text-amber-800 text-xs rounded-full">
                       Admin
                     </span>
                   )}
@@ -96,7 +96,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
             ) : (
               <button
                 onClick={() => onNavigate('login')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
               >
                 Sign In
               </button>
@@ -113,7 +113,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
                 onClick={() => onNavigate(link.id)}
                 className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                   currentPage === link.id
-                    ? 'bg-blue-100 text-blue-700'
+                    ? 'bg-emerald-100 text-emerald-700'
                     : 'text-gray-700 bg-gray-50 hover:bg-gray-100'
                 }`}
               >
@@ -128,7 +128,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
               onClick={() => onNavigate('admin')}
               className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                 currentPage === 'admin'
-                  ? 'bg-purple-100 text-purple-700'
+                  ? 'bg-amber-100 text-amber-700'
                   : 'text-gray-700 bg-gray-50 hover:bg-gray-100'
               }`}
             >

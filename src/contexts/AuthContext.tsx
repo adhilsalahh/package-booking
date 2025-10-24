@@ -11,6 +11,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, name: string, phone: string) => Promise<void>;
   signIn: (identifier: string, password: string) => Promise<void>;
+  adminSignIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -112,6 +113,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const adminSignIn = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+
+    if (data.user) {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (profileError || !profileData) {
+        await supabase.auth.signOut();
+        throw new Error('Profile not found');
+      }
+
+      if (!profileData.is_admin) {
+        await supabase.auth.signOut();
+        throw new Error('Unauthorized: Admin access only');
+      }
+
+      setProfile(profileData);
+    }
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -124,6 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signUp,
     signIn,
+    adminSignIn,
     signOut,
   };
 
