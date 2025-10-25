@@ -1,5 +1,5 @@
 import { Package } from '../../lib/supabase';
-import { Calendar, MapPin, Clock, Users } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, Check } from 'lucide-react';
 
 type PackageCardProps = {
   package: Package;
@@ -14,6 +14,9 @@ export function PackageCard({ package: pkg, onBook }: PackageCardProps) {
       year: 'numeric',
     });
   };
+
+  const inclusions = Array.isArray(pkg.inclusions) ? pkg.inclusions : [];
+  const facilities = Array.isArray(pkg.facilities) ? pkg.facilities : [];
 
   return (
     <div className="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -54,6 +57,23 @@ export function PackageCard({ package: pkg, onBook }: PackageCardProps) {
           </div>
         </div>
 
+        {inclusions.length > 0 && (
+          <div className="mb-4 pb-4 border-b">
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Inclusions:</h4>
+            <div className="space-y-1">
+              {inclusions.slice(0, 3).map((inclusion: string, index: number) => (
+                <div key={index} className="flex items-start text-xs text-gray-600">
+                  <Check className="w-3 h-3 mr-1 mt-0.5 text-green-600 flex-shrink-0" />
+                  <span className="line-clamp-1">{inclusion}</span>
+                </div>
+              ))}
+              {inclusions.length > 3 && (
+                <p className="text-xs text-blue-600">+{inclusions.length - 3} more</p>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="border-t pt-4">
           <div className="flex justify-between items-center mb-3">
             <div>
@@ -72,7 +92,7 @@ export function PackageCard({ package: pkg, onBook }: PackageCardProps) {
             onClick={onBook}
             className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
           >
-            Book Now
+            View Details
           </button>
         </div>
       </div>

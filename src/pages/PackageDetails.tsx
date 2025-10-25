@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Calendar, IndianRupee, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, IndianRupee, Clock, ChevronLeft, MapPin, Users, Check, Phone, Mail, Globe } from 'lucide-react';
 import { supabase, Package, PackageDate } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,7 +11,6 @@ export function PackageDetails() {
   const [dates, setDates] = useState<PackageDate[]>([]);
   const [selectedDate, setSelectedDate] = useState<PackageDate | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -60,18 +59,6 @@ export function PackageDetails() {
     navigate(`/booking/${packageId}`, { state: { package: pkg, date: selectedDate } });
   };
 
-  const nextImage = () => {
-    if (pkg?.image_url) {
-      return;
-    }
-  };
-
-  const prevImage = () => {
-    if (pkg?.image_url) {
-      return;
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pt-24 flex items-center justify-center">
@@ -95,6 +82,11 @@ export function PackageDetails() {
       </div>
     );
   }
+
+  const inclusions = Array.isArray(pkg.inclusions) ? pkg.inclusions : [];
+  const facilities = Array.isArray(pkg.facilities) ? pkg.facilities : [];
+  const itinerary = Array.isArray(pkg.itinerary) ? pkg.itinerary : [];
+  const contactInfo = pkg.contact_info || {};
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12">
@@ -127,7 +119,11 @@ export function PackageDetails() {
 
             <div className="flex items-center space-x-6 mb-6">
               <div className="flex items-center text-gray-700">
-                <Clock className="h-5 w-5 mr-2" />
+                <MapPin className="h-5 w-5 mr-2 text-blue-600" />
+                <span className="font-medium">{pkg.destination}</span>
+              </div>
+              <div className="flex items-center text-gray-700">
+                <Clock className="h-5 w-5 mr-2 text-blue-600" />
                 <span>{pkg.duration_days} days</span>
               </div>
               <div className="flex items-center text-blue-600 font-bold text-2xl">
@@ -141,6 +137,88 @@ export function PackageDetails() {
               <h2 className="text-xl font-semibold text-gray-800 mb-2">Description</h2>
               <p className="text-gray-600 whitespace-pre-line">{pkg.description}</p>
             </div>
+
+            {inclusions.length > 0 && (
+              <div className="mb-8 bg-green-50 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                  <Check className="h-6 w-6 mr-2 text-green-600" />
+                  What's Included
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {inclusions.map((inclusion: string, index: number) => (
+                    <div key={index} className="flex items-start">
+                      <Check className="h-5 w-5 mr-2 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700">{inclusion}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {facilities.length > 0 && (
+              <div className="mb-8 bg-blue-50 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Facilities</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {facilities.map((facility: string, index: number) => (
+                    <div key={index} className="flex items-start">
+                      <Check className="h-5 w-5 mr-2 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700">{facility}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {itinerary.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Day-by-Day Itinerary</h2>
+                <div className="space-y-4">
+                  {itinerary.map((day: any, index: number) => (
+                    <div key={index} className="border-l-4 border-blue-600 pl-4 py-2">
+                      <h3 className="font-semibold text-gray-800 mb-1">Day {day.day}: {day.title}</h3>
+                      <p className="text-gray-600">{day.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(contactInfo.phone || contactInfo.email || contactInfo.website) && (
+              <div className="mb-8 bg-gray-50 rounded-lg p-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Contact Information</h2>
+                <div className="space-y-2">
+                  {contactInfo.phone && (
+                    <div className="flex items-center text-gray-700">
+                      <Phone className="h-5 w-5 mr-3 text-blue-600" />
+                      <a href={`tel:${contactInfo.phone}`} className="hover:text-blue-600">
+                        {contactInfo.phone}
+                      </a>
+                    </div>
+                  )}
+                  {contactInfo.email && (
+                    <div className="flex items-center text-gray-700">
+                      <Mail className="h-5 w-5 mr-3 text-blue-600" />
+                      <a href={`mailto:${contactInfo.email}`} className="hover:text-blue-600">
+                        {contactInfo.email}
+                      </a>
+                    </div>
+                  )}
+                  {contactInfo.website && (
+                    <div className="flex items-center text-gray-700">
+                      <Globe className="h-5 w-5 mr-3 text-blue-600" />
+                      <a
+                        href={contactInfo.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-blue-600"
+                      >
+                        {contactInfo.website}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {dates.length > 0 && (
               <div className="mb-8">
@@ -186,12 +264,29 @@ export function PackageDetails() {
               </div>
             )}
 
+            <div className="bg-blue-50 rounded-lg p-6 mb-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Advance Payment Required</p>
+                  <p className="text-3xl font-bold text-green-600">₹{pkg.advance_payment}</p>
+                  <p className="text-sm text-gray-600 mt-1">per person</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-gray-600 mb-1">Remaining Balance</p>
+                  <p className="text-3xl font-bold text-gray-800">
+                    ₹{pkg.price_per_head - pkg.advance_payment}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">per person</p>
+                </div>
+              </div>
+            </div>
+
             <button
               onClick={handleBookNow}
               disabled={!selectedDate || (selectedDate && selectedDate.seats <= 0)}
               className="w-full md:w-auto bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Book Now
+              {!selectedDate ? 'Select a Date to Continue' : 'Book Now'}
             </button>
           </div>
         </div>
