@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Upload, IndianRupee } from 'lucide-react';
 import { supabase, Package, PackageDate, Member } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface BookingProps {
   packageData: Package;

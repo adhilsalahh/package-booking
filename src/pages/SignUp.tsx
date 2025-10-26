@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UserPlus, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { SignupPreview } from '../components/SignupPreview';
 import {
   validateEmail,

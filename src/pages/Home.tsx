@@ -399,13 +399,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
       <footer className="bg-gray-900 text-gray-300 py-8">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="mb-4">&copy; 2025 PackTrack. All rights reserved.</p>
-          <button
-            onClick={() => onNavigate('admin')}
-            className="text-gray-500 hover:text-gray-400 text-sm transition-colors"
-          >
-            Admin Access
-          </button>
+          <p>&copy; 2025 PackTrack. All rights reserved.</p>
         </div>
       </footer>
     </div>

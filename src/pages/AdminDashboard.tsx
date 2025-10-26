@@ -1,26 +1,30 @@
-import { useState, useEffect } from 'react';
-import { Package, Calendar, Users, BookOpen, LogOut, Settings } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Package, Users, BookOpen, LogOut, Settings } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { PackageManagement } from '../components/admin/PackageManagement';
 import { BookingManagement } from '../components/admin/BookingManagement';
 import { UserManagement } from '../components/admin/UserManagement';
 import { PaymentReport } from '../components/admin/PaymentReport';
 
-interface AdminDashboardProps {
-  onNavigate: (page: string) => void;
-  showToast: (message: string, type: 'success' | 'error') => void;
-}
-
-export function AdminDashboard({ onNavigate, showToast }: AdminDashboardProps) {
+export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'packages' | 'bookings' | 'users' | 'reports'>('packages');
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const { signOut, profile } = useAuth();
+  const navigate = useNavigate();
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const handleSignOut = async () => {
     try {
       await signOut();
-      onNavigate('home');
+      navigate('/');
     } catch (error) {
       console.error('Sign out error:', error);
+      showToast('Failed to sign out', 'error');
     }
   };
 
@@ -46,7 +50,7 @@ export function AdminDashboard({ onNavigate, showToast }: AdminDashboardProps) {
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => onNavigate('home')}
+                onClick={() => navigate('/')}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 View Site
@@ -93,6 +97,18 @@ export function AdminDashboard({ onNavigate, showToast }: AdminDashboardProps) {
         {activeTab === 'users' && <UserManagement showToast={showToast} />}
         {activeTab === 'reports' && <PaymentReport showToast={showToast} />}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <div
+            className={`px-6 py-3 rounded-lg shadow-lg text-white ${
+              toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+            }`}
+          >
+            {toast.message}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
