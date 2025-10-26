@@ -7,7 +7,8 @@ interface PackageDate {
   id: string;
   package_id: string;
   available_date: string;
-  seats: number;
+  max_bookings: number;
+  current_bookings: number;
 }
 
 export default function ManagePackageDates() {
@@ -59,7 +60,8 @@ export default function ManagePackageDates() {
       const { error } = await supabase.from('package_dates').insert({
         package_id: id,
         available_date: newDate,
-        seats: parseInt(newSeats),
+        max_bookings: parseInt(newSeats),
+        current_bookings: 0,
       });
 
       if (error) throw error;
@@ -166,29 +168,32 @@ export default function ManagePackageDates() {
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {dates.map((date) => (
-                <div key={date.id} className="p-6 flex justify-between items-center">
-                  <div>
-                    <p className="text-lg font-medium text-gray-800">
-                      {new Date(date.available_date + 'T00:00:00').toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {date.seats} seats available
-                    </p>
+              {dates.map((date) => {
+                const availableSeats = date.max_bookings - date.current_bookings;
+                return (
+                  <div key={date.id} className="p-6 flex justify-between items-center">
+                    <div>
+                      <p className="text-lg font-medium text-gray-800">
+                        {new Date(date.available_date + 'T00:00:00').toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {availableSeats} of {date.max_bookings} seats available ({date.current_bookings} booked)
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteDate(date.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded transition"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => handleDeleteDate(date.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded transition"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

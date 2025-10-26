@@ -94,10 +94,10 @@ export default function BookingPage() {
       if (bookingError) throw bookingError;
 
       if (selectedDate) {
-        const updatedSeats = selectedDate.seats - numberOfPeople;
+        const updatedBookings = selectedDate.current_bookings + numberOfPeople;
         await supabase
           .from('package_dates')
-          .update({ seats: updatedSeats })
+          .update({ current_bookings: updatedBookings })
           .eq('id', selectedDate.id);
       }
 

@@ -51,7 +51,8 @@ export function PackageDetails() {
       return;
     }
 
-    if (selectedDate.seats <= 0) {
+    const availableSeats = selectedDate.max_bookings - selectedDate.current_bookings;
+    if (availableSeats <= 0) {
       alert('No seats available for this date');
       return;
     }
@@ -249,7 +250,8 @@ export function PackageDetails() {
                       day: 'numeric',
                     });
                     const isSelected = selectedDate?.id === date.id;
-                    const isAvailable = date.seats > 0;
+                    const availableSeats = date.max_bookings - date.current_bookings;
+                    const isAvailable = availableSeats > 0;
 
                     return (
                       <button
@@ -271,7 +273,7 @@ export function PackageDetails() {
                               isAvailable ? 'text-green-600' : 'text-red-600'
                             }`}
                           >
-                            {date.seats} seats
+                            {availableSeats} seats
                           </span>
                         </div>
                         <p className="text-gray-800 font-medium">{formattedDate}</p>
@@ -301,7 +303,7 @@ export function PackageDetails() {
 
             <button
               onClick={handleBookNow}
-              disabled={!selectedDate || (selectedDate && selectedDate.seats <= 0)}
+              disabled={!selectedDate || (selectedDate && (selectedDate.max_bookings - selectedDate.current_bookings) <= 0)}
               className="w-full md:w-auto bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {!selectedDate ? 'Select a Date to Continue' : 'Book Now'}

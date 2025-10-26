@@ -217,7 +217,8 @@ export type Database = {
           id: string;
           package_id: string;
           available_date: string;
-          seats: number;
+          max_bookings: number;
+          current_bookings: number;
           is_available: boolean;
           created_at: string;
           updated_at: string;
@@ -226,7 +227,8 @@ export type Database = {
           id?: string;
           package_id: string;
           available_date: string;
-          seats: number;
+          max_bookings: number;
+          current_bookings?: number;
           is_available?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -235,7 +237,8 @@ export type Database = {
           id?: string;
           package_id?: string;
           available_date?: string;
-          seats?: number;
+          max_bookings?: number;
+          current_bookings?: number;
           is_available?: boolean;
           created_at?: string;
           updated_at?: string;
