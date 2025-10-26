@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { supabase, Package, PackageDate } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Calendar, IndianRupee, Users, Trash2, Plus, UserCheck } from 'lucide-react';
 
 interface TravelerInfo {
