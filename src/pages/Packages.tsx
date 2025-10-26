@@ -1,28 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { Check, AlertCircle, Loader } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AlertCircle, Loader, Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import type { Database } from '../lib/supabase';
+import type { Package } from '../lib/supabase';
 
-type Package = Database['public']['Tables']['packages']['Row'];
-
-interface PackagesProps {
-  onNavigate: (page: string) => void;
-  selectedPackageId?: string | null;
-  onSelectPackage?: (pkg: Package) => void;
-}
-
-const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSelectPackage }) => {
-  const { user } = useAuth();
+export function Packages() {
+  const navigate = useNavigate();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [bookingPackage, setBookingPackage] = useState<Package | null>(null);
-  const [bookingForm, setBookingForm] = useState({
-    requested_date: '',
-    special_requests: '',
-  });
-  const [bookingLoading, setBookingLoading] = useState(false);
 
   useEffect(() => {
     loadPackages();
@@ -45,54 +31,6 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
     }
   };
 
-  const handleBookNow = (pkg: Package) => {
-    if (!user) {
-      onNavigate('login');
-      return;
-    }
-    setBookingPackage(pkg);
-  };
-
-  const handleBookingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!bookingPackage || !user) return;
-
-    setBookingLoading(true);
-    try {
-      const { data: bookingData, error: bookingError } = await supabase
-        .from('bookings')
-        .insert({
-          user_id: user.id,
-          package_id: bookingPackage.id,
-          requested_date: bookingForm.requested_date || null,
-          total_amount: bookingPackage.price_per_head,
-          special_requests: bookingForm.special_requests,
-        })
-        .select()
-        .single();
-
-      if (bookingError) throw bookingError;
-
-      const { error: paymentError } = await supabase
-        .from('payments')
-        .insert({
-          booking_id: bookingData.id,
-          user_id: user.id,
-          amount: bookingPackage.advance_payment,
-        });
-
-      if (paymentError) throw paymentError;
-
-      alert('Booking created successfully! Please upload payment proof in your bookings page.');
-      setBookingPackage(null);
-      setBookingForm({ requested_date: '', special_requests: '' });
-      onNavigate('bookings');
-    } catch (err: any) {
-      alert('Error creating booking: ' + err.message);
-    } finally {
-      setBookingLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -114,7 +52,7 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white pt-24 py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Our Packages</h1>
@@ -135,7 +73,7 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-100"
               >
                 {pkg.image_url && (
-                  <div className="h-48 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+                  <div className="h-64 bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
                     <img
                       src={pkg.image_url}
                       alt={pkg.title}
@@ -143,103 +81,44 @@ const Packages: React.FC<PackagesProps> = ({ onNavigate, selectedPackageId, onSe
                     />
                   </div>
                 )}
-                <div className="p-8">
+                <div className="p-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{pkg.title}</h3>
-                  <p className="text-gray-600 mb-2 leading-relaxed">{pkg.description}</p>
-                  <p className="text-sm text-gray-500 mb-4">{pkg.destination}</p>
+                  <p className="text-gray-600 mb-4 line-clamp-3">{pkg.description}</p>
 
                   <div className="mb-6">
                     <div className="flex items-baseline mb-2">
-                      <span className="text-4xl font-bold text-blue-600">₹{pkg.price_per_head}</span>
-                      <span className="ml-2 text-gray-500">/ {pkg.duration_days} Days</span>
+                      <span className="text-3xl font-bold text-blue-600">₹{pkg.price_per_head}</span>
+                      <span className="ml-2 text-gray-500">per person</span>
                     </div>
                     <div className="text-sm text-gray-600">
-                      <div>Advance: ₹{pkg.advance_payment}</div>
-                      <div>Dates: {new Date(pkg.start_date).toLocaleDateString()} - {new Date(pkg.end_date).toLocaleDateString()}</div>
+                      <div>Duration: {pkg.duration_days} Days</div>
+                      <div>Destination: {pkg.destination}</div>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleBookNow(pkg)}
-                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                  >
-                    Book Now
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => navigate(`/package/${pkg.id}`)}
+                      className="flex-1 py-2.5 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => navigate(`/package/${pkg.id}`)}
+                      className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      Book Now
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
-
-      {bookingPackage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Book {bookingPackage.name}</h2>
-
-            <form onSubmit={handleBookingSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Requested Date (Optional)
-                </label>
-                <input
-                  type="date"
-                  value={bookingForm.requested_date}
-                  onChange={(e) => setBookingForm({ ...bookingForm, requested_date: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Special Requests (Optional)
-                </label>
-                <textarea
-                  value={bookingForm.special_requests}
-                  onChange={(e) => setBookingForm({ ...bookingForm, special_requests: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={4}
-                  placeholder="Any special requirements or notes..."
-                />
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700 font-medium">Total Amount:</span>
-                  <span className="text-2xl font-bold text-blue-600">₹{bookingPackage.price_per_head}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Advance Payment:</span>
-                  <span className="text-lg font-semibold text-green-600">₹{bookingPackage.advance_payment}</span>
-                </div>
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setBookingPackage(null);
-                    setBookingForm({ requested_date: '', special_requests: '' });
-                  }}
-                  className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={bookingLoading}
-                  className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
-                >
-                  {bookingLoading ? 'Booking...' : 'Confirm Booking'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
+}
 
 export default Packages;

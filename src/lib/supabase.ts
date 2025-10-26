@@ -58,6 +58,7 @@ export type Database = {
           inclusions: any;
           itinerary: any;
           facilities: any;
+          gallery_images: any;
           contact_info: any;
           created_by: string | null;
           created_at: string;
@@ -79,6 +80,7 @@ export type Database = {
           inclusions?: any;
           itinerary?: any;
           facilities?: any;
+          gallery_images?: any;
           contact_info?: any;
           created_by?: string | null;
           created_at?: string;
@@ -100,6 +102,7 @@ export type Database = {
           inclusions?: any;
           itinerary?: any;
           facilities?: any;
+          gallery_images?: any;
           contact_info?: any;
           created_by?: string | null;
           created_at?: string;

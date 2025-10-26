@@ -86,6 +86,7 @@ export function PackageDetails() {
   const inclusions = Array.isArray(pkg.inclusions) ? pkg.inclusions : [];
   const facilities = Array.isArray(pkg.facilities) ? pkg.facilities : [];
   const itinerary = Array.isArray(pkg.itinerary) ? pkg.itinerary : [];
+  const galleryImages = Array.isArray(pkg.gallery_images) ? pkg.gallery_images : [];
   const contactInfo = pkg.contact_info || {};
 
   return (
@@ -171,12 +172,29 @@ export function PackageDetails() {
 
             {itinerary.length > 0 && (
               <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Day-by-Day Itinerary</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Day-by-Day Itinerary</h2>
                 <div className="space-y-4">
                   {itinerary.map((day: any, index: number) => (
-                    <div key={index} className="border-l-4 border-blue-600 pl-4 py-2">
-                      <h3 className="font-semibold text-gray-800 mb-1">Day {day.day}: {day.title}</h3>
-                      <p className="text-gray-600">{day.description}</p>
+                    <div key={index} className="bg-white border-l-4 border-blue-600 shadow-sm rounded-r-lg p-6 hover:shadow-md transition-shadow">
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">Day {day.day}: {day.title}</h3>
+                      <p className="text-gray-600 leading-relaxed">{day.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {galleryImages.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Photo Gallery</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {galleryImages.map((imageUrl: string, index: number) => (
+                    <div key={index} className="relative h-64 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow group">
+                      <img
+                        src={imageUrl}
+                        alt={`${pkg.title} - Image ${index + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
                   ))}
                 </div>
