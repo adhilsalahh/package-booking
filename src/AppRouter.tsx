@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
-import { Home } from './pages/Home';
+import Home from './pages/Home';
 import { Packages } from './pages/Packages';
 import { PackageDetails } from './pages/PackageDetails';
-import { Contact } from './pages/Contact';
-import { Login } from './pages/Login';
+import Contact from './pages/Contact';
+import Login from './pages/Login';
 import { Signup } from './pages/SignUp';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
